@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 
 // ─── Users ────────────────────────────────────────────────────────────────────
@@ -247,13 +248,46 @@ export async function getAnalytics() {
 
 // ─── Messages Monitoring ──────────────────────────────────────────────────────
 
+export type AdminConversationRecord = Prisma.ConversationGetPayload<{
+  include: {
+    job: { select: { id: true; title: true; location: true } };
+    student: {
+      select: {
+        id: true;
+        name: true;
+        userId: true;
+        user: { select: { email: true } };
+      };
+    };
+    employer: {
+      select: {
+        id: true;
+        workshopName: true;
+        userId: true;
+        user: { select: { email: true } };
+      };
+    };
+    messages: {
+      orderBy: { createdAt: "desc" };
+      take: 1;
+    };
+    _count: {
+      select: {
+        messages: {
+          where: { isRead: false };
+        };
+      };
+    };
+  };
+}>;
+
 export async function findAllConversationsForAdmin(params: {
   search?: string;
   filter?: "all" | "recent" | "unread";
   skip: number;
   take: number;
-}) {
-  const where: any = {};
+}): Promise<{ conversations: AdminConversationRecord[]; total: number }> {
+  const where: Prisma.ConversationWhereInput = {};
 
   if (params.search) {
     where.OR = [

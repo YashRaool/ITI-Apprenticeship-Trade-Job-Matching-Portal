@@ -1,4 +1,5 @@
 import * as adminRepository from "../repositories/adminRepository";
+import type { AdminConversationRecord } from "../repositories/adminRepository";
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 
@@ -115,7 +116,7 @@ export async function listAdminConversations(params: {
     take: params.limit,
   });
 
-  const formatted = conversations.map((conv) => ({
+  const formatted = conversations.map((conv: AdminConversationRecord) => ({
     id: conv.id,
     job: conv.job,
     student: conv.student,

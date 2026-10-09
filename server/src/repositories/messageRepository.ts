@@ -1,4 +1,27 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
+
+export type StudentConversationRecord = Prisma.ConversationGetPayload<{
+  include: {
+    job: { select: { id: true; title: true; location: true } };
+    employer: { select: { id: true; workshopName: true; userId: true } };
+    messages: {
+      orderBy: { createdAt: "desc" };
+      take: 1;
+    };
+  };
+}>;
+
+export type EmployerConversationRecord = Prisma.ConversationGetPayload<{
+  include: {
+    job: { select: { id: true; title: true; location: true } };
+    student: { select: { id: true; name: true; userId: true } };
+    messages: {
+      orderBy: { createdAt: "desc" };
+      take: 1;
+    };
+  };
+}>;
 
 export async function findConversationByJobAndStudent(jobId: string, studentId: string) {
   return prisma.conversation.findUnique({
@@ -42,7 +65,7 @@ export async function findConversationById(conversationId: string) {
   });
 }
 
-export async function findConversationsByStudentId(studentId: string) {
+export async function findConversationsByStudentId(studentId: string): Promise<StudentConversationRecord[]> {
   return prisma.conversation.findMany({
     where: { studentId },
     include: {
@@ -57,7 +80,7 @@ export async function findConversationsByStudentId(studentId: string) {
   });
 }
 
-export async function findConversationsByEmployerId(employerId: string) {
+export async function findConversationsByEmployerId(employerId: string): Promise<EmployerConversationRecord[]> {
   return prisma.conversation.findMany({
     where: { employerId },
     include: {

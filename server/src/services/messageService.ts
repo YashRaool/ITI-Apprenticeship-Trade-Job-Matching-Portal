@@ -1,4 +1,8 @@
 import * as messageRepository from "../repositories/messageRepository";
+import type {
+  StudentConversationRecord,
+  EmployerConversationRecord,
+} from "../repositories/messageRepository";
 import { prisma } from "../lib/prisma";
 
 export async function getOrCreateConversation(userId: string, role: string, jobId: string, targetStudentId?: string) {
@@ -82,7 +86,7 @@ export async function getUserConversations(userId: string, role: string) {
 
     const conversations = await messageRepository.findConversationsByStudentId(studentProfile.id);
     return await Promise.all(
-      conversations.map(async (conv) => {
+      conversations.map(async (conv: StudentConversationRecord) => {
         const unreadCount = await messageRepository.countUnreadMessages(conv.id, userId);
         return {
           ...conv,
@@ -97,7 +101,7 @@ export async function getUserConversations(userId: string, role: string) {
 
     const conversations = await messageRepository.findConversationsByEmployerId(employerProfile.id);
     return await Promise.all(
-      conversations.map(async (conv) => {
+      conversations.map(async (conv: EmployerConversationRecord) => {
         const unreadCount = await messageRepository.countUnreadMessages(conv.id, userId);
         return {
           ...conv,

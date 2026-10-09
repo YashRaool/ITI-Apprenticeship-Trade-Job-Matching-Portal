@@ -30,3 +30,14 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
+# Agent workflow and local tooling
+.agent/
+.agents/
+.gemini/
+.gsd/
+GSD-STYLE.md
+PROJECT_RULES.md
+VERSION
+model_capabilities.yaml
+adapters/
+scripts/

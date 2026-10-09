@@ -3,16 +3,14 @@
     "target": "ES2020",
     "module": "CommonJS",
     "lib": ["ES2020"],
+    "rootDir": "./src",
     "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "declaration": true,
-    "sourceMap": true,
-    "paths": {
-      "@iti-portal/shared": ["../shared/src"]
-    }
+    "sourceMap": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

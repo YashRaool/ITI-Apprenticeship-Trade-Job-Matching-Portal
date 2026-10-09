@@ -1,400 +1,321 @@
-# ITI Apprenticeship & Trade Job Matching Portal
+# 🛠️ ITI Apprenticeship & Trade Job Matching Portal
 
-An end-to-end vocational employment platform connecting Industrial Training Institute (ITI) graduates and certified tradespersons with verified workshops, manufacturing plants, and MSMEs across India.
+### 🚀 Connecting ITI Students with Apprenticeships & Trade Jobs
 
-The portal provides structured apprenticeship and full-time job matching, trade credential verification, applicant pipeline tracking, direct messaging, and interview scheduling within a unified monorepo.
+A full-stack web platform designed to connect ITI graduates and diploma students with apprenticeship opportunities and trade-related jobs offered by workshops, factories, and manufacturing businesses.
 
----
+Find opportunities, showcase technical skills, apply for jobs, and help employers discover skilled candidates—all through one unified platform.
 
-## Table of Contents
-
-- [Problem Statement & Objectives](#problem-statement--objectives)
-- [Key Features](#key-features)
-  - [Student & Candidate Capabilities](#student--candidate-capabilities)
-  - [Employer & Workshop Capabilities](#employer--workshop-capabilities)
-  - [Administrator Capabilities](#administrator-capabilities)
-- [Architecture & Tech Stack](#architecture--tech-stack)
-- [Repository Structure](#repository-structure)
-- [Prerequisites](#prerequisites)
-- [Local Installation & Setup](#local-installation--setup)
-- [Environment Configuration](#environment-configuration)
-- [Database Management](#database-management)
-- [Available Scripts](#available-scripts)
-- [Health Check & Verification](#health-check--verification)
-- [Deployment Overview](#deployment-overview)
-- [Security Architecture & Limitations](#security-architecture--limitations)
-- [Project Status & Future Roadmap](#project-status--future-roadmap)
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-Express-339933?logo=nodedotjs&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1?logo=postgresql&logoColor=white)
+![Status](https://img.shields.io/badge/Status-Deployment%20Preparation-orange)
 
 ---
 
-## Problem Statement & Objectives
+## 🌟 About the Project
 
-### The Problem
-In India, hundreds of thousands of candidates graduate each year from ITIs in trades such as Electrician, Fitter, Welder, Machinist, Turner, and COPA. Despite heavy demand across manufacturing and service clusters:
-- Job discovery is fragmented across informal networks, local notice boards, and unverified listings.
-- Candidates lack a standardized digital profile highlighting trade certifications and practical competencies.
-- Small and medium workshops face high friction verifying credentials and scheduling apprentice interviews.
+Finding suitable apprenticeship opportunities can be challenging for vocational students, while workshops and manufacturing businesses often struggle to find candidates with the right technical skills.
 
-### Project Objectives
-1. **Bridge the Vocational Discovery Gap**: Create a digital marketplace tailored to trade skills rather than generic white-collar resumes.
-2. **Ensure Trust Through Verification**: Enable candidate certificate reviews and workshop verification workflows.
-3. **Streamline Hiring Logistics**: Integrate job search, application pipelines, in-app messaging, and interview scheduling.
-4. **Maintain Administrative Oversight**: Provide administrators with tools to moderate postings, prevent fraud, and inspect platform activity.
+The **ITI Apprenticeship & Trade Job Matching Portal** addresses this gap by bringing students and employers together on a centralized digital platform.
+
+Students can create professional profiles, explore trade-specific opportunities, and track their applications. Employers can publish openings, review candidates, shortlist suitable applicants, and communicate directly with them. Administrators help maintain platform quality through employer verification and job moderation.
+
+🎯 **Our goal:** Make apprenticeship discovery and trade-based hiring simpler, more accessible, and more organized.
+
+## ✨ Key Features
+
+### 👨‍🎓 Student & Apprentice Portal
+
+- 📝 Create accounts and build professional profiles.
+- 🔧 Add trade skills, ITI institute details, qualifications, and certifications.
+- 📄 Maintain resume and certificate records.
+- 🔍 Search and filter jobs by trade skills, location, and opportunity type.
+- 📩 Apply for jobs and track application status.
+- 💬 Communicate directly with employers.
+- 📅 View scheduled interview details.
+
+### 🏭 Employer & Workshop Portal
+
+- 🏢 Create and manage workshop or factory profiles.
+- 📢 Publish apprenticeship and trade-job openings.
+- ⚙️ Define required skills, qualifications, and job requirements.
+- 👥 Review applicants and their available profile information.
+- ⭐ Shortlist candidates and update application statuses.
+- 💬 Communicate with applicants.
+- 📅 Schedule and manage interviews.
+
+### 🛡️ Admin Dashboard
+
+- 👤 Manage student and employer accounts.
+- ✅ Review employer verification requests.
+- 🔎 Monitor job postings and moderate inappropriate listings.
+- 🚫 Manage account activation and moderation actions.
+- 📊 View platform analytics and activity.
+- ⚙️ Manage platform settings and trade-skill information.
+
+### 🔐 Security & User Experience
+
+- 🔑 Email/password authentication and Google Sign-In.
+- 🔒 Role-based access control for Student, Employer, and Admin.
+- 🍪 HTTP-only authentication cookies and session handling.
+- 📱 Responsive layouts for desktop and mobile devices.
+- 🎨 Clean, light-themed interface with polished interactions.
+- 🧊 Interactive 3D hero experience on desktop and cinematic landing-page animations.
 
 ---
 
-## Key Features
+## 🧰 Tech Stack
 
-### Student & Candidate Capabilities
-- **Trade-Centric Profiles**: Select specialized ITI trades (Electrical, Mechanical, Fabrication, Civil, IT), institute name, contact details, and location.
-- **Certificate & Resume Management**: Upload trade qualification certificates with verification tracking (`pending`, `verified`, `rejected`) and resume links.
-- **Targeted Job Search**: Search and filter opportunities by trade category, location, and employment type (Apprenticeship vs. Full-time).
-- **Application Tracking**: Monitor application progression through a defined status lifecycle (`Applied` → `Viewed` → `Shortlisted` → `Hired` / `Rejected`).
-- **Direct Employer Messaging**: Communicate directly with prospective employers regarding application details.
-- **Interview Scheduling**: View scheduled interviews (date, time, notes, online vs. in-person mode) and response details.
-- **Mutual Ratings**: Provide post-hiring feedback and star ratings for workshops.
-
-### Employer & Workshop Capabilities
-- **Workshop Profile & Verification**: Register workshop details, industry domain, physical location, and contact information with admin verification workflows.
-- **Job Posting Management**: Create, edit, and close job and apprenticeship listings with trade requirements and descriptions.
-- **Applicant Pipeline Management**: Review applicants, inspect qualifications and uploaded certificates, and advance candidates through hiring stages.
-- **Direct Candidate Chat**: Message candidates in dedicated application threads.
-- **Interview Scheduling**: Propose and manage interview slots with mode selection (`ONLINE` or `IN_PERSON`) and custom notes.
-- **Two-Way Ratings**: Rate student performance upon engagement completion.
-
-### Administrator Capabilities
-- **Employer Verification Queue**: Review submitted workshop profiles, approving legitimate businesses and rejecting incomplete or suspicious submissions.
-- **Job Moderation & Anti-Fraud**: Flag fraudulent postings, hide violative listings from public search, and record moderation reasons.
-- **User Account Management**: Toggle account active states to suspend offending users or re-enable accounts.
-- **Platform Analytics**: Monitor aggregate metrics covering total users, active listings, submitted applications, and verification queues.
-- **Application Configuration**: Manage platform-wide operational settings and trade skills registry.
+| Layer | Technologies |
+|---|---|
+| 🎨 Frontend | React 18, TypeScript, Vite |
+| 💅 Styling & UI | Tailwind CSS, Lucide React |
+| 🎞️ Animation & 3D | Framer Motion, Three.js |
+| ⚡ Backend | Node.js, Express.js, TypeScript |
+| 🗄️ Database | PostgreSQL, Prisma ORM |
+| 🧩 Shared Validation | TypeScript, Zod |
+| 🔐 Authentication | JWT, bcryptjs, Google OAuth |
+| ☁️ File Storage | Cloudinary integration; production configuration required |
+| 🔄 Background Jobs | Redis and BullMQ infrastructure; optional for current core workflows |
 
 ---
 
-## Architecture & Tech Stack
+## 🏗️ System Architecture
 
-The application is structured as an npm workspaces monorepo containing three coordinated packages:
-
+```text
+                 👨‍🎓 Students
+                       │
+                 🏭 Employers
+                       │
+                    🛡️ Admin
+                       │
+                       ▼
+          ┌────────────────────────┐
+          │    React Frontend      │
+          │   TypeScript · Vite    │
+          └────────────┬───────────┘
+                       │ REST API
+                       ▼
+          ┌────────────────────────┐
+          │    Express Backend     │
+          │ Auth · RBAC · Services │
+          └────────────┬───────────┘
+                       │ Prisma ORM
+                       ▼
+          ┌────────────────────────┐
+          │      PostgreSQL        │
+          │ Users · Jobs · Profiles│
+          │ Applications · Messages│
+          └────────────────────────┘
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                              Client (SPA)                               │
-│       React 18 • TypeScript • Vite • Tailwind CSS • Framer Motion       │
-│                 Three.js Hero Scene • Lucide React Icons                │
-└────────────────────────────────────┬────────────────────────────────────┘
-                                     │ HTTP / REST
-                                     ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                              Server (API)                               │
-│        Node.js • Express • TypeScript • Prisma ORM • Zod Validation     │
-│             JWT (Access + Refresh Rotation) • Helmet • Multer           │
-└───────────────────┬─────────────────────────────────┬───────────────────┘
-                    │                                 │
-                    ▼                                 ▼
-       ┌────────────────────────┐       ┌────────────────────────┐
-       │   PostgreSQL Database  │       │     Redis & BullMQ     │
-       │    Relational Storage  │       │ (Optional / Task Queue)│
-       └────────────────────────┘       └────────────────────────┘
-                    ▲                                 ▲
-                    └────────────────┬────────────────┘
-                                     │
-                     ┌───────────────────────────────┐
-                     │       @iti-portal/shared      │
-                     │  DTOs, Enums, Zod Contracts   │
-                     └───────────────────────────────┘
-```
 
-### Technology Breakdown
+The project follows a **monorepo architecture** with separate client, server, and shared packages.
 
-| Component | Technologies | Purpose |
-|---|---|---|
-| **Frontend** | React 18, TypeScript, Vite, Tailwind CSS | Single-page application UI with responsive layout and dark/light themes |
-| **Motion & 3D** | Framer Motion, Three.js | Interactive hero visualization with hardware-adapted fallback |
-| **Backend API** | Node.js, Express, TypeScript | RESTful service layer handling auth, profiles, jobs, chat, and admin endpoints |
-| **Data Layer** | PostgreSQL, Prisma ORM | Relational schema modeling users, profiles, trade skills, applications, and messages |
-| **Background Queues** | Redis, BullMQ | Asynchronous queue infrastructure; gracefully optional during development |
-| **Validation** | Zod | Runtime type safety and payload validation across client and server |
-| **Authentication** | JWT, bcryptjs, `@react-oauth/google` | Dual-token authentication with HTTP-only cookies and Google OAuth support |
+## 📂 Project Structure
 
----
-
-## Repository Structure
-
-```
-.
-├── client/                     # Frontend Single Page Application
-│   ├── src/
-│   │   ├── components/         # Reusable UI components & forms
-│   │   ├── context/            # AuthContext and ThemeContext providers
-│   │   ├── lib/                # API client adapters and animation utilities
-│   │   ├── pages/              # Route views (Landing, Dashboards, Search, Chat)
-│   │   └── styles/             # Tailwind imports and CSS tokens
-│   ├── .env.example            # Client environment template
-│   └── vite.config.ts          # Vite build and dev configuration
+```text
+ITI-Apprenticeship-Trade-Job-Matching-Portal/
 │
-├── server/                     # Backend API Service
-│   ├── prisma/
-│   │   ├── schema.prisma       # Prisma relational data model
-│   │   ├── migrations/         # Versioned SQL migration history
-│   │   └── seed.ts             # Trade skills, admin, and realistic fixture seeder
-│   ├── src/
-│   │   ├── config/             # Zod environment variable validation
-│   │   ├── lib/                # Prisma client, JWT utilities, Redis handler
-│   │   ├── middleware/         # Authentication & role guard middleware
-│   │   ├── repositories/       # Data-access layer using Prisma
-│   │   ├── routes/             # Express route definitions
-│   │   └── services/           # Business logic layer
-│   └── .env.example            # Server environment template
-│
-├── shared/                     # Shared TypeScript Definitions
+├── client/                  # React frontend application
 │   └── src/
-│       └── index.ts            # Shared enums, interfaces, DTOs, and Zod schemas
+│       ├── components/      # Reusable UI components
+│       ├── context/         # Authentication and theme state
+│       ├── lib/             # API clients and utilities
+│       └── pages/           # Application routes and dashboards
 │
-└── package.json                # Root monorepo workspace configuration
+├── server/                  # Express backend API
+│   ├── prisma/
+│   │   ├── migrations/      # Database migration history
+│   │   ├── schema.prisma    # Database schema
+│   │   └── seed.ts          # Initial and demo data
+│   └── src/
+│       ├── config/          # Environment configuration
+│       ├── middleware/      # Authentication and permissions
+│       ├── repositories/    # Data access
+│       ├── routes/          # API endpoints
+│       └── services/        # Business logic
+│
+├── shared/                  # Shared types and validation
+├── package.json             # Root workspace scripts
+├── package-lock.json        # Dependency lockfile
+└── README.md
 ```
 
 ---
 
-## Prerequisites
+## ⚙️ Getting Started
 
-Before running the project locally, ensure the following dependencies are installed:
+Follow these steps to run the project locally.
 
-| Tool | Minimum Version | Notes |
-|---|---|---|
-| **Node.js** | `>= 20.x` | Node runtime for workspace packages |
-| **npm** | `>= 10.x` | Package manager supporting npm workspaces |
-| **PostgreSQL** | `>= 15.x` | Primary relational database |
-| **Redis** | `>= 7.x` | **Optional** for local runtime; core API degrades gracefully if offline |
+### 📋 Prerequisites
 
----
+- Node.js 22.x or 24.x LTS.
+- npm compatible with the root lockfile.
+- PostgreSQL 15 or later.
+- Google OAuth credentials for Google Sign-In.
+- Cloudinary credentials for persistent cloud-based file uploads.
 
-## Local Installation & Setup
+Redis is optional for the current core Phase 1 workflows.
 
-### 1. Clone the Repository
+### 1️⃣ Clone the Repository
 
 ```bash
 git clone https://github.com/YashRaool/ITI-Apprenticeship-Trade-Job-Matching-Portal.git
+
 cd ITI-Apprenticeship-Trade-Job-Matching-Portal
 ```
 
-### 2. Install Dependencies
-
-Install all dependencies across root and workspace packages (`client`, `server`, `shared`):
+### 2️⃣ Install Dependencies
 
 ```bash
-npm install
+npm ci
 ```
 
-### 3. Configure Environment Variables
+### 3️⃣ Configure Environment Variables
 
-Create environment configuration files using the provided templates:
+Create local environment files using the provided templates.
+
+**Windows PowerShell**
+
+```powershell
+Copy-Item server/.env.example server/.env
+Copy-Item client/.env.example client/.env
+```
+
+**macOS / Linux**
 
 ```bash
-# Server configuration
 cp server/.env.example server/.env
-
-# Client configuration
 cp client/.env.example client/.env
 ```
 
-Review and adjust variables in `server/.env` and `client/.env` as detailed in [Environment Configuration](#environment-configuration).
+Update the values in both `.env` files according to your local environment. Configure your PostgreSQL connection, authentication secrets, Google OAuth client ID, and any required storage credentials.
 
-### 4. Build Shared Types & Generate Prisma Client
+⚠️ **Never commit real environment files or production secrets to GitHub.**
+
+### 4️⃣ Prepare the Database
+
+Make sure PostgreSQL is running and `DATABASE_URL` points to your local development database.
 
 ```bash
-# Build the shared contract package
 npm run build --workspace=shared
 
-# Generate Prisma Client types
 npm run db:generate --workspace=server
-```
 
-### 5. Apply Database Migrations & Seed Data
-
-Ensure your PostgreSQL service is running and accessible via the `DATABASE_URL` specified in `server/.env`.
-
-```bash
-# Run database migrations for development
 npm run db:migrate
 
-# Seed trade skills, admin user, and initial demo data
 npm run db:seed
 ```
 
-### 6. Run the Application
+The seed command may create initial administrator and demo records. Verify its behavior and use appropriate credentials before accessing the application.
 
-Start the backend API and frontend development server concurrently:
+### 5️⃣ Start the Application
 
 ```bash
 npm run dev
 ```
 
-- **Frontend Client**: `http://localhost:5173`
-- **Backend API**: `http://localhost:5000`
-- **Health Check**: `http://localhost:5000/health`
+The application uses these default local addresses:
 
-Alternatively, run workspaces independently:
+| Service | Local URL |
+|---|---|
+| 🌐 Frontend | `http://localhost:5173` |
+| ⚡ Backend API | `http://localhost:5000` |
+| ❤️ Health Check | `http://localhost:5000/health` |
+
+---
+
+## 🧪 Useful Development Commands
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start frontend and backend development servers |
+| `npm run build` | Build all workspaces |
+| `npm run lint` | Run available lint checks |
+| `npm run db:generate --workspace=server` | Generate Prisma Client |
+| `npm run db:migrate` | Apply development migrations |
+| `npm run db:deploy` | Apply pending migrations in a deployment |
+| `npm run db:seed` | Populate initial and demo data |
+| `npm run db:studio` | Open Prisma Studio |
+
+### ❤️ Check Backend Health
 
 ```bash
-# Backend only
-npm run dev --workspace=server
-
-# Frontend only
-npm run dev --workspace=client
+curl http://localhost:5000/health
 ```
 
----
-
-## Environment Configuration
-
-### Server Environment (`server/.env`)
-
-Refer to `server/.env.example` for the full reference:
-
-```env
-# Server Runtime
-NODE_ENV=development
-PORT=5000
-CLIENT_ORIGIN=http://localhost:5173
-
-# PostgreSQL Connection String
-DATABASE_URL=postgresql://postgres:password@localhost:5432/iti_portal
-
-# Redis (Optional in local development)
-REDIS_URL=redis://localhost:6379
-
-# JWT Secrets (Generate with: openssl rand -base64 48)
-JWT_ACCESS_SECRET=your_secure_access_secret_min_32_characters
-JWT_REFRESH_SECRET=your_secure_refresh_secret_min_32_characters
-JWT_ACCESS_EXPIRES_IN=15m
-JWT_REFRESH_EXPIRES_IN=30d
-
-# Google OAuth (Optional - required for Google Sign-In)
-GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-
-# Cloudinary Storage (Optional placeholder)
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-
-# Initial Admin Seeding (Used when running npm run db:seed)
-ADMIN_EMAIL=admin@itiportal.local
-ADMIN_PASSWORD=ChangeThisSecurePassword123!
-```
-
-### Client Environment (`client/.env`)
-
-Refer to `client/.env.example`:
-
-```env
-# Backend API Base URL
-VITE_API_URL=http://localhost:5000
-
-# Google OAuth Client ID (Matches server configuration)
-VITE_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
-```
-
-> **Security Note**: Never commit `.env` files with production credentials or sensitive keys to Git. Keep actual secret values in secure environment secret stores.
+The health endpoint should return a successful status response when the backend is running.
 
 ---
 
-## Database Management
+## ☁️ Deployment Status
 
-Prisma ORM handles schema migrations and database interactions.
+🚧 **Deployment preparation is in progress.**
 
-```bash
-# Development: Create and apply migrations from schema.prisma
-npm run db:migrate
+The project has completed substantial local implementation and development testing. Production deployment still requires the hosting services, database, environment variables, file storage, and live application workflows to be configured and verified.
 
-# Production: Apply pending migrations in deployment pipelines without altering schema
-npm run db:deploy
+The intended deployment architecture consists of:
 
-# Seed: Populate trade categories, default admin, and realistic test fixtures
-npm run db:seed
+- 🌐 **Frontend:** Static hosting for the React application.
+- ⚡ **Backend:** Node.js web service for the Express API.
+- 🗄️ **Database:** Managed PostgreSQL.
+- 📄 **File Storage:** Configured cloud storage for persistent resume and certificate uploads.
 
-# Prisma Studio: Launch a visual browser interface for inspecting records
-npm run db:studio
-```
+A public live-demo link will be added after deployment and verification.
 
 ---
 
-## Available Scripts
+## 🔒 Security & Data Handling
 
-| Script | Workspace | Description |
-|---|---|---|
-| `npm run dev` | Root | Runs client and server concurrently |
-| `npm run build` | Root | Builds `shared`, `server`, and `client` packages for production |
-| `npm run lint` | Root | Runs ESLint across all workspaces |
-| `npm run db:migrate` | Root (`server`) | Runs `prisma migrate dev` |
-| `npm run db:deploy` | Root (`server`) | Runs `prisma migrate deploy` (for production releases) |
-| `npm run db:seed` | Root (`server`) | Seeds trade skills, admin, and demo data |
-| `npm run db:studio` | Root (`server`) | Launches Prisma Studio database inspector |
-| `npm run preview` | `client` | Previews the compiled frontend build locally |
+- Passwords are hashed with bcryptjs.
+- Role-based permissions protect restricted application routes.
+- Environment variables and request payloads are validated.
+- Authentication uses JWTs and HTTP-only cookies.
+- CORS and rate limiting provide additional API protections.
+- Production secrets belong in the hosting provider's environment settings.
+
+⚠️ Persistent document uploads must be tested with the production storage configuration before accepting real user files.
 
 ---
 
-## Health Check & Verification
+## 🚀 Future Enhancements
 
-Verify that the backend service is running and responsive:
+Ideas for future iterations include:
 
-```bash
-curl -X GET http://localhost:5000/health
-```
+- 🤖 AI-assisted job recommendations based on skills and location.
+- 📚 Integrated trade-skill assessments and learning resources.
+- 🏛️ Integration with relevant government apprenticeship schemes.
+- 🔔 Job alerts and additional notification channels.
+- 📱 A dedicated mobile application.
+- 🎓 Apprenticeship completion tracking.
 
-Expected response:
-```json
-{
-  "status": "ok",
-  "timestamp": "2026-10-10T00:00:00.000Z"
-}
-```
+These are potential enhancements, not claims of completed functionality.
 
 ---
 
-## Deployment Overview
+## 🙌 Acknowledgements
 
-Deployment configuration is pending, but the architecture is designed for modern cloud environments:
+This project is developed around the goal of improving connections between vocational students and trade employers.
 
-### 1. Frontend Client
-- Run `npm run build --workspace=client` to produce static output in `client/dist`.
-- Deploy to static hosting platforms such as **Vercel**, **Netlify**, **Cloudflare Pages**, or **AWS S3 + CloudFront**.
-- Configure SPA routing fallbacks to `index.html`.
+Useful reference organizations and platforms:
 
-### 2. Backend Service
-- Run `npm run build --workspace=server` to compile TypeScript to `server/dist`.
-- Deploy as a long-running Node service to **Render**, **Railway**, **Fly.io**, or a virtual server.
-- Start using `node dist/index.js` with `NODE_ENV=production`.
-
-### 3. PostgreSQL Database
-- Provision a managed PostgreSQL instance (e.g., **Supabase**, **Neon**, **AWS RDS**).
-- Run `npm run db:deploy` in your deployment or release phase to execute pending schema migrations safely.
+- [Unified Mentor](https://www.unifiedmentor.com/)
+- [National Skill Development Corporation (NSDC)](https://www.nsdcindia.org/)
+- [Apprenticeship India](https://apprenticeshipindia.gov.in/)
+- [Apna](https://apna.co/)
 
 ---
 
-## Security Architecture & Limitations
+## 👨‍💻 Maintainer
 
-### Implemented Safeguards
-- **Password Security**: Passwords are hashed using `bcryptjs` with a cost factor of 12.
-- **Token Rotation**: Short-lived access tokens (15m) paired with refresh token rotation stored in HTTP-only cookies.
-- **Route Authorization**: Middleware guards enforce role separation (`student`, `employer`, `admin`) on sensitive endpoints.
-- **Request Validation**: All incoming requests and environment variables are strictly parsed with Zod schemas.
-- **HTTP Hardening**: Helmet sets security headers, CORS restricts allowed origins, and rate-limiting protects against brute-force attacks.
+**Yash Raool**
 
-### Current Limitations
-- **File Storage**: Document and certificate attachments currently utilize placeholder/local storage adapters pending production cloud bucket wiring (e.g., S3/Cloudinary).
-- **Asynchronous Queues**: Background worker execution (BullMQ) gracefully degrades if Redis is absent; production environments should supply an active Redis instance for queue processing.
-- **Testing**: Automated integration and end-to-end test suites are pending implementation.
+GitHub: [@YashRaool](https://github.com/YashRaool)
+
+Project Repository: [ITI Apprenticeship & Trade Job Matching Portal](https://github.com/YashRaool/ITI-Apprenticeship-Trade-Job-Matching-Portal)
 
 ---
 
-## Project Status & Future Roadmap
-
-### Current Status
-All core functional capabilities across candidate onboarding, employer workflows, job listings, application pipelines, chat messaging, and administrative moderation are fully implemented and running in the local development environment.
-
-### Planned Enhancements
-- **Multilingual Support**: Hindi, Marathi, and regional language localization for trade workers with limited English proficiency.
-- **SMS & WhatsApp Alerts**: Notification webhooks for interview invitations and status changes to accommodate low-bandwidth users.
-- **Skill-Based Recommendations**: Machine-learning driven matching between student trade competencies and job requirements.
-- **National Apprenticeship Integration**: Sync workflows with government apprenticeship programs (NAPS / NATS).
-- **Automated Test Suite**: Integration test coverage with Vitest and Playwright.
+⭐ If you find this project interesting, explore the code and follow its progress as deployment moves forward.

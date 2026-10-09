@@ -1,0 +1,2 @@
+// Middleware — auth guards, validators, etc. go here (Phase 1+)
+export {};

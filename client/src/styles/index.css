@@ -1,0 +1,144 @@
+@import "./tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base Reset ──────────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-size: var(--font-size-base);
+    line-height: var(--line-height);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-bg);
+    color: var(--color-ink-primary);
+    min-height: 100dvh;
+    transition: background-color var(--transition-base), color var(--transition-base);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-teal);
+    outline-offset: 2px;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--color-bg); }
+  ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-teal); }
+}
+
+/* ─── Reusable Component Utilities ──────────────────────────────────────── */
+@layer components {
+  /* Content wrapper */
+  .content-wrap {
+    @apply max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-card);
+    transition: box-shadow var(--transition-base), border-color var(--transition-base), transform var(--transition-base);
+  }
+  .card:hover {
+    box-shadow: var(--shadow-card-hover);
+    border-color: var(--color-teal);
+    transform: translateY(-2px);
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 bg-teal text-white font-semibold px-5 py-2.5 rounded-lg
+           hover:bg-teal-light active:bg-teal-dark shadow-sm hover:shadow-teal hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]
+           transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2
+           focus-visible:ring-offset-base-bg cursor-pointer select-none;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 bg-base-surface border border-base-border text-ink-primary
+           font-medium px-4 py-2.5 rounded-lg hover:bg-base-muted hover:border-teal hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]
+           transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer select-none;
+  }
+
+  .btn-sky {
+    @apply inline-flex items-center justify-center gap-2 bg-sky text-black font-semibold px-5 py-2.5 rounded-lg
+           hover:bg-sky-light active:bg-sky-dark shadow-sm hover:shadow-sky hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]
+           transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer select-none;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 font-medium px-4 py-2.5 rounded-lg
+           transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer select-none;
+    background: var(--color-status-red-bg);
+    border: 1px solid var(--color-status-red-border);
+    color: var(--color-status-red);
+  }
+  .btn-danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+  }
+
+  /* Inputs */
+  .input-base {
+    @apply w-full rounded-lg px-3.5 py-2.5 text-sm
+           text-ink-primary placeholder-ink-muted
+           bg-base-muted border border-base-border
+           outline-none transition-all duration-150
+           focus:border-teal focus:ring-1 focus:ring-teal
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .auth-input {
+    @apply input-base;
+  }
+
+  .auth-btn-primary {
+    @apply btn-primary w-full py-3 text-base;
+  }
+
+  /* Section card header pattern */
+  .section-header {
+    @apply p-5 sm:p-6 border-b border-base-border flex items-center justify-between;
+    background: color-mix(in srgb, var(--color-muted) 30%, transparent);
+  }
+
+  /* Float animation utility */
+  .animate-float-subtle {
+    animation: floatSubtle 6s ease-in-out infinite;
+  }
+
+  /* Page entrance animation */
+  .page-enter {
+    animation: pageEnter 0.22s ease-out both;
+  }
+
+  /* Stagger helpers */
+  .stagger-1 { animation-delay: 40ms; }
+  .stagger-2 { animation-delay: 80ms; }
+  .stagger-3 { animation-delay: 120ms; }
+  .stagger-4 { animation-delay: 160ms; }
+  .stagger-5 { animation-delay: 200ms; }
+}
+
+/* ─── Reduced motion ──────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

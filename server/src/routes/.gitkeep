@@ -1,0 +1,4 @@
+// Placeholder directories for Phase 1+ (Auth)
+// Each feature will have: routes/auth.routes.ts, services/auth.service.ts, repositories/user.repository.ts
+
+export {};

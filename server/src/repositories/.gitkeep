@@ -1,0 +1,2 @@
+// Repositories layer — data access (Prisma calls) go here (Phase 1+)
+export {};

@@ -1,0 +1,256 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  student
+  employer
+  admin
+}
+
+enum AppStatus {
+  applied
+  viewed
+  shortlisted
+  rejected
+  hired
+}
+
+enum JobStatus {
+  draft
+  active
+  closed
+}
+
+enum JobType {
+  apprenticeship
+  full_time
+}
+
+enum VerifStatus {
+  pending
+  verified
+  rejected
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String?  // null for Google-only accounts
+  googleId      String?  @unique
+  role          Role     @default(student)
+  isActive      Boolean  @default(true)  // admin can deactivate accounts
+  refreshToken  String?  // stores latest issued refresh token for invalidation
+  createdAt     DateTime @default(now())
+
+  studentProfile  StudentProfile?
+  employerProfile EmployerProfile?
+  ratingsGiven    Rating[]        @relation("RatingFrom")
+  ratingsReceived Rating[]        @relation("RatingTo")
+  sentMessages     Message[]      @relation("SentMessages")
+  receivedMessages Message[]      @relation("ReceivedMessages")
+
+  @@map("users")
+}
+
+model StudentProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  name         String
+  itiInstitute String?
+  phone        String?
+  location     String?
+  tradeSkills  String[] // Array of TradeSkill IDs — resolved at service layer
+  resumeUrl    String?
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applications  Application[]
+  certifications Certification[]
+  conversations Conversation[]
+  interviews    Interview[]
+
+  @@map("student_profiles")
+}
+
+model EmployerProfile {
+  id                 String      @id @default(cuid())
+  userId             String      @unique
+  workshopName       String
+  industryType       String
+  location           String
+  contactPhone       String?
+  description        String?     @db.Text
+  verified           Boolean     @default(false)
+  verificationStatus VerifStatus @default(pending) // pending | verified | rejected
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobPostings   JobPosting[]
+  conversations Conversation[]
+  interviews    Interview[]
+
+  @@map("employer_profiles")
+}
+
+model TradeSkill {
+  id       String @id @default(cuid())
+  name     String @unique
+  category String
+
+  jobPostings JobPosting[]
+
+  @@map("trade_skills")
+}
+
+model JobPosting {
+  id                String    @id @default(cuid())
+  employerId        String
+  title             String
+  tradeSkillId      String
+  location          String
+  description       String    @db.Text
+  status            JobStatus @default(active)
+  jobType           JobType   @default(apprenticeship)
+  flaggedFraudulent Boolean   @default(false) // admin-only flag; hides from all public/student flows
+  moderatedAt       DateTime? // set when admin formally removes from platform (non-null = moderated)
+  moderationReason  String?   // optional reason shown to employer
+  createdAt         DateTime  @default(now())
+
+  employer      EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  tradeSkill    TradeSkill      @relation(fields: [tradeSkillId], references: [id])
+  applications  Application[]
+  conversations Conversation[]
+
+  @@map("job_postings")
+}
+
+model Application {
+  id        String    @id @default(cuid())
+  jobId     String
+  studentId String
+  status    AppStatus @default(applied)
+  createdAt DateTime  @default(now())
+
+  job        JobPosting     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  student    StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  ratings    Rating[]
+  interviews Interview[]
+
+  @@unique([jobId, studentId]) // one application per student per job
+  @@map("applications")
+}
+
+model Certification {
+  id                 String      @id @default(cuid())
+  studentId          String
+  title              String
+  proofUrl           String
+  verificationStatus VerifStatus @default(pending)
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("certifications")
+}
+
+model Rating {
+  id            String @id @default(cuid())
+  applicationId String
+  fromUserId    String
+  toUserId      String
+  score         Int    // 1–5
+  comment       String? @db.Text
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  fromUser    User        @relation("RatingFrom", fields: [fromUserId], references: [id])
+  toUser      User        @relation("RatingTo", fields: [toUserId], references: [id])
+
+  @@unique([applicationId, fromUserId]) // one rating per application per rater
+  @@map("ratings")
+}
+
+model AppSetting {
+  key       String   @id        // e.g. "maxTradeSkillsPerStudent"
+  value     String              // stored as string, cast at service layer
+  updatedAt DateTime @updatedAt
+
+  @@map("app_settings")
+}
+
+// ─── Chat & Interview Enums and Models ────────────────────────────────────────
+
+enum InterviewMode {
+  ONLINE
+  IN_PERSON
+}
+
+enum InterviewStatus {
+  SCHEDULED
+  CANCELLED
+  COMPLETED
+}
+
+model Conversation {
+  id         String   @id @default(cuid())
+  jobId      String
+  studentId  String
+  employerId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  job      JobPosting      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  student  StudentProfile  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  employer EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@unique([jobId, studentId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  receiverId     String
+  content        String   @db.Text
+  isRead         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver     User         @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model Interview {
+  id            String          @id @default(cuid())
+  applicationId String
+  employerId    String
+  studentId     String
+  title         String
+  date          DateTime
+  time          String
+  mode          InterviewMode   @default(ONLINE)
+  notes         String?         @db.Text
+  status        InterviewStatus @default(SCHEDULED)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  application Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  employer    EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  student     StudentProfile  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("interviews")
+}
+

@@ -40,4 +40,6 @@ PROJECT_RULES.md
 VERSION
 model_capabilities.yaml
 adapters/
-scripts/
+scripts/*
+!scripts/package-eb.js
+dist-eb/

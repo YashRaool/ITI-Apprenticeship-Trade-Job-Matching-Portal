@@ -10,6 +10,8 @@
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
     "build": "npm run build --workspace=shared && npm run build --workspace=server && npm run build --workspace=client",
+    "start": "node server/dist/index.js",
+    "package:eb": "node scripts/package-eb.js",
     "lint": "npm run lint --workspaces --if-present",
     "postinstall": "npm run db:generate --workspace=server",
     "db:generate": "npm run db:generate --workspace=server",

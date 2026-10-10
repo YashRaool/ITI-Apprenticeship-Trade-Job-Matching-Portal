@@ -18,6 +18,9 @@ import interviewRoutes from "./routes/interviewRoutes";
 
 const app = express();
 
+// Trust reverse proxy (ALB / Nginx in Elastic Beanstalk)
+app.set("trust proxy", 1);
+
 // ─── Security ─────────────────────────────────────────────────────────────────
 app.use(helmet());
 app.use(

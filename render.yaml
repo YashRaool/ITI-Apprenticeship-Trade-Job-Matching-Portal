@@ -3,10 +3,45 @@ databases:
     databaseName: iti_portal
     user: iti_user
     plan: free
-    region: singapore
+    region: oregon
 
 services:
-  # ─── Backend Web Service ───────────────────────────────────────────────────
+  # ─── New Backend Web Service (Oregon) ──────────────────────────────────────
+  - type: web
+    name: iti-portal-api-oregon
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install --include=dev && npm run build --workspace=shared && npm run build --workspace=server
+    startCommand: npm run db:deploy --workspace=server && npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: iti-portal-db
+          property: connectionString
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: CLIENT_ORIGIN
+        sync: false
+      - key: COOKIE_SAME_SITE
+        value: none
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+  # ─── Existing Backend Web Service (Singapore - Kept until verified) ────────
   - type: web
     name: iti-portal-api
     runtime: node

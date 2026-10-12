@@ -116,7 +116,7 @@ The project follows a **monorepo architecture** with separate client, server, an
 ## 📂 Project Structure
 
 ```text
-ITI-Apprenticeship-Trade-Job-Matching-Portal/
+ITI-Apprenticeship-&-Trade-Job-Matching-Portal
 │
 ├── client/                  # React frontend application
 │   └── src/

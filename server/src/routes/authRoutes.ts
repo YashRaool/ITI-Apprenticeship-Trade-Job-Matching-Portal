@@ -56,7 +56,15 @@ function setRefreshCookie(res: Response, token: string) {
 
 function handleError(err: unknown, res: Response) {
   const e = err as Error & { status?: number };
-  return res.status(e.status ?? 500).json({ success: false, message: e.message ?? "Server error" });
+  const status = e.status ?? 500;
+  if (status >= 500) {
+    console.error("Auth server error:", err);
+    return res.status(status).json({
+      success: false,
+      message: env.NODE_ENV === "production" ? "Internal server error" : (e.message ?? "Server error"),
+    });
+  }
+  return res.status(status).json({ success: false, message: e.message ?? "Authentication failed" });
 }
 
 // ─── POST /auth/register ──────────────────────────────────────────────────────
@@ -127,7 +135,7 @@ router.post("/refresh", sessionLimiter, async (req: Request, res: Response) => {
 router.post("/logout", requireAuth, async (req: Request, res: Response) => {
   try {
     await authService.logout(req.user!.userId);
-    res.clearCookie("refreshToken", { path: "/" });
+    res.clearCookie("refreshToken", COOKIE_OPTS);
     return res.json({ success: true, message: "Logged out" });
   } catch (err) {
     return handleError(err, res);

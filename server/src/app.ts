@@ -23,18 +23,35 @@ app.set("trust proxy", 1);
 
 // ─── Security ─────────────────────────────────────────────────────────────────
 app.use(helmet());
+
+// Support comma-separated origins and strip trailing slashes to avoid CORS rejection
+const rawOrigins = env.CLIENT_ORIGIN || "http://localhost:5173";
+const allowedOrigins = rawOrigins
+  .split(",")
+  .map((o) => o.trim().replace(/\/+$/, ""))
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: env.CLIENT_ORIGIN,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const normalized = origin.replace(/\/+$/, "");
+      if (allowedOrigins.includes(normalized) || env.NODE_ENV === "development") {
+        return callback(null, true);
+      }
+      return callback(null, false);
+    },
     credentials: true,
+    optionsSuccessStatus: 200,
   })
 );
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: env.NODE_ENV === "production" ? 100 : 2000,
+    max: env.NODE_ENV === "production" ? 1000 : 2000,
     standardHeaders: true,
     legacyHeaders: false,
+    message: { success: false, message: "Too many requests, please try again later." },
   })
 );
 

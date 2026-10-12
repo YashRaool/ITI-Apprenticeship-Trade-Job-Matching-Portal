@@ -48,6 +48,73 @@ export default function AuthModal() {
 
   if (!isOpen) return null;
 
+  function formatAuthError(err: unknown, isReg: boolean, isGoogle = false): string {
+    if (!err || typeof err !== "object") {
+      return isGoogle
+        ? "Google authentication failed. Please try again."
+        : isReg
+        ? "Registration failed. Please check your details."
+        : "Invalid email or password.";
+    }
+
+    const anyErr = err as {
+      code?: string;
+      message?: string;
+      response?: {
+        status?: number;
+        data?: {
+          message?: string;
+          errors?: Record<string, string[] | undefined>;
+        };
+      };
+    };
+
+    if (anyErr.code === "ECONNABORTED" || anyErr.message?.toLowerCase().includes("timeout")) {
+      return "Server response timed out. The backend instance may be waking up—please try again in a few moments.";
+    }
+    if (!anyErr.response || anyErr.code === "ERR_NETWORK" || anyErr.message?.toLowerCase().includes("network error")) {
+      return "Unable to connect to the server. Please check your network connection and verify the backend service is running.";
+    }
+
+    const status = anyErr.response.status;
+    const data = anyErr.response.data;
+
+    if (status === 429) {
+      return data?.message || "Too many attempts. Please wait a few moments before trying again.";
+    }
+    if (status === 401) {
+      if (isGoogle) return data?.message || "Google token verification failed. Please try signing in again.";
+      return data?.message || (isReg ? "Registration failed. Invalid credentials." : "Invalid email or password.");
+    }
+    if (status === 403) {
+      return data?.message || "Account access is deactivated. Please contact support.";
+    }
+    if (status === 409) {
+      return data?.message || "An account with this email address already exists. Please sign in instead.";
+    }
+    if (status === 501 && isGoogle) {
+      return "Google Sign-In is not configured on this server. Please use email and password.";
+    }
+    if (status && status >= 500) {
+      return "Server error occurred. Please try again in a moment.";
+    }
+
+    if (data?.errors && typeof data.errors === "object") {
+      const errorStrings = Object.values(data.errors).flat().filter(Boolean);
+      if (errorStrings.length > 0) return errorStrings.join(". ");
+    }
+
+    if (data?.message && typeof data.message === "string") {
+      return data.message;
+    }
+
+    return isGoogle
+      ? "Google authentication failed. Please try again."
+      : isReg
+      ? "Registration failed. Please check your details."
+      : "Invalid email or password.";
+  }
+
   function redirectByRole(assignedRole?: string) {
     if (assignedRole === "employer") navigate("/employer/dashboard", { replace: true });
     else if (assignedRole === "admin") navigate("/admin/dashboard", { replace: true });
@@ -60,39 +127,33 @@ export default function AuthModal() {
     setLoading(true);
     try {
       if (isRegister) {
-        await register(email, password, role);
-        redirectByRole(role);
+        const authedUser = await register(email, password, role);
+        redirectByRole(authedUser.role);
       } else {
-        await login(email, password);
-        const me = await import("../lib/api").then((m) =>
-          m.api.get<{ success: boolean; data: { userId: string; role: string } }>("/auth/me")
-        );
-        redirectByRole(me.data.data.role);
+        const authedUser = await login(email, password);
+        redirectByRole(authedUser.role);
       }
       onClose();
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        (isRegister ? "Registration failed. Please check your details." : "Invalid email or password.");
-      setError(msg);
+      setError(formatAuthError(err, isRegister));
     } finally {
       setLoading(false);
     }
   }
 
   async function handleGoogle(credentialResponse: { credential?: string }) {
-    if (!credentialResponse.credential) return;
+    if (!credentialResponse.credential) {
+      setError("No credential received from Google. Please try again.");
+      return;
+    }
     setError("");
     setLoading(true);
     try {
-      await googleLogin(credentialResponse.credential);
-      const me = await import("../lib/api").then((m) =>
-        m.api.get<{ success: boolean; data: { userId: string; role: string } }>("/auth/me")
-      );
-      redirectByRole(me.data.data.role);
+      const authedUser = await googleLogin(credentialResponse.credential);
+      redirectByRole(authedUser.role);
       onClose();
-    } catch {
-      setError(`Google ${isRegister ? 'sign-up' : 'sign-in'} failed. Please try again.`);
+    } catch (err: unknown) {
+      setError(formatAuthError(err, isRegister, true));
     } finally {
       setLoading(false);
     }
@@ -229,14 +290,24 @@ export default function AuthModal() {
             </div>
 
             <div className="flex justify-center w-full">
-              <GoogleLogin
-                onSuccess={handleGoogle}
-                onError={() => setError(`Google ${isRegister ? 'sign-up' : 'sign-in'} failed`)}
-                theme="outline"
-                shape="rectangular"
-                size="large"
-                width="100%"
-              />
+              {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
+                <GoogleLogin
+                  onSuccess={handleGoogle}
+                  onError={() =>
+                    setError(
+                      "Google Sign-In failed or was blocked by browser. Please check popup permissions and authorized origins in Google Cloud Console."
+                    )
+                  }
+                  theme="outline"
+                  shape="rectangular"
+                  size="large"
+                  width="100%"
+                />
+              ) : (
+                <div className="w-full text-center py-2.5 px-3 bg-amber-50/80 border border-amber-200/80 rounded-xl text-xs text-amber-800">
+                  Google Sign-In is unavailable (OAuth Client ID pending configuration in Render environment).
+                </div>
+              )}
             </div>
 
             <p className="text-center text-sm text-[#667085] mt-6">

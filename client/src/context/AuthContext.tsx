@@ -6,9 +6,9 @@ export type AuthUser = { id: string; email: string; role: "student" | "employer"
 interface AuthState {
   user: AuthUser | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, role: "student" | "employer") => Promise<void>;
-  googleLogin: (idToken: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<AuthUser>;
+  register: (email: string, password: string, role: "student" | "employer") => Promise<AuthUser>;
+  googleLogin: (idToken: string) => Promise<AuthUser>;
   logout: () => Promise<void>;
 }
 
@@ -31,33 +31,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setIsLoading(false));
   }, []);
 
-  async function handleTokenResponse(data: { user: AuthUser; accessToken: string }) {
+  async function handleTokenResponse(data: { user: AuthUser; accessToken: string }): Promise<AuthUser> {
     setAccessToken(data.accessToken);
     setUser(data.user);
+    return data.user;
   }
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<AuthUser> => {
     const r = await api.post<{ success: boolean; data: { user: AuthUser; accessToken: string } }>(
       "/auth/login",
       { email, password }
     );
-    await handleTokenResponse(r.data.data);
+    return handleTokenResponse(r.data.data);
   };
 
-  const register = async (email: string, password: string, role: "student" | "employer") => {
+  const register = async (email: string, password: string, role: "student" | "employer"): Promise<AuthUser> => {
     const r = await api.post<{ success: boolean; data: { user: AuthUser; accessToken: string } }>(
       "/auth/register",
       { email, password, role }
     );
-    await handleTokenResponse(r.data.data);
+    return handleTokenResponse(r.data.data);
   };
 
-  const googleLogin = async (idToken: string) => {
+  const googleLogin = async (idToken: string): Promise<AuthUser> => {
     const r = await api.post<{ success: boolean; data: { user: AuthUser; accessToken: string } }>(
       "/auth/google",
       { idToken }
     );
-    await handleTokenResponse(r.data.data);
+    return handleTokenResponse(r.data.data);
   };
 
   const logout = async () => {

@@ -55,13 +55,18 @@ export const authService = {
       throw Object.assign(new Error("Google auth not configured"), { status: 501 });
     }
 
-    const ticket = await googleClient.verifyIdToken({
-      idToken,
-      audience: env.GOOGLE_CLIENT_ID,
-    });
+    let ticket;
+    try {
+      ticket = await googleClient.verifyIdToken({
+        idToken,
+        audience: env.GOOGLE_CLIENT_ID,
+      });
+    } catch {
+      throw Object.assign(new Error("Invalid or expired Google token"), { status: 401 });
+    }
     const payload = ticket.getPayload();
     if (!payload?.email || !payload.sub) {
-      throw Object.assign(new Error("Invalid Google token"), { status: 401 });
+      throw Object.assign(new Error("Invalid Google token payload"), { status: 401 });
     }
     if (!payload.email_verified) {
       throw Object.assign(new Error("Google email is not verified"), { status: 401 });

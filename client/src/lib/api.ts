@@ -1,8 +1,12 @@
 import axios from "axios";
 
+const rawBaseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
+const baseURL = rawBaseUrl.replace(/\/+$/, "");
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:5000",
+  baseURL,
   withCredentials: true, // send httpOnly cookie on every request
+  timeout: 30000, // 30s timeout to accommodate Render free tier cold-starts
 });
 
 // Token stored in memory — set by AuthContext after login/refresh
@@ -16,21 +20,31 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// On 401: try refresh once, then retry
+// Auth endpoints that must never trigger the 401 auto-refresh loop
+const AUTH_BYPASS_URLS = ["/auth/login", "/auth/register", "/auth/refresh", "/auth/google"];
+
+// On 401: try refresh once, then retry (for protected resource endpoints only)
 let _refreshing: Promise<string | null> | null = null;
 
 api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config;
-    if (error.response?.status !== 401 || original._retried) {
+    if (!original) return Promise.reject(error);
+
+    const isAuthEndpoint = AUTH_BYPASS_URLS.some((url) => original.url?.includes(url));
+    if (error.response?.status !== 401 || original._retried || isAuthEndpoint) {
       return Promise.reject(error);
     }
     original._retried = true;
 
     if (!_refreshing) {
-      _refreshing = api
-        .post<{ success: boolean; data: { accessToken: string } }>("/auth/refresh")
+      _refreshing = axios
+        .post<{ success: boolean; data: { accessToken: string } }>(
+          `${baseURL}/auth/refresh`,
+          {},
+          { withCredentials: true, timeout: 15000 }
+        )
         .then((r) => {
           const t = r.data.data.accessToken;
           setAccessToken(t);

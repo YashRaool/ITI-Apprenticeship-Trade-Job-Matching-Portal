@@ -689,7 +689,8 @@ export default function Hero3DBackground() {
 
     // ─── Main Animation Loop ───
     let animFrameId = 0;
-    const clock = new THREE.Clock();
+    let prevTime = performance.now();
+    const startTime = prevTime;
 
     // Orientation state: continuous quaternion multi-axis integration
     let accumulatedAngle = 0;
@@ -707,8 +708,10 @@ export default function Hero3DBackground() {
 
     const animate = () => {
       animFrameId = requestAnimationFrame(animate);
-      const delta = Math.min(clock.getDelta(), 0.05);
-      const elapsed = clock.getElapsedTime();
+      const now = performance.now();
+      const delta = Math.min((now - prevTime) / 1000, 0.05);
+      prevTime = now;
+      const elapsed = (now - startTime) / 1000;
 
       if (targetGroupPos.x === 0) {
         computeTargetGroupPos();

@@ -234,29 +234,35 @@ export default function AuthModal() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#667085] uppercase tracking-wider mb-1.5">
+                <label htmlFor="auth-email" className="block text-xs font-semibold text-[#667085] uppercase tracking-wider mb-1.5">
                   Email Address
                 </label>
                 <input
+                  id="auth-email"
+                  name="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  autoComplete="username"
                   placeholder="name@example.com"
                   className="w-full px-4 py-2 border border-[#E5EAF2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] transition-all text-[#172033] bg-gray-50 focus:bg-white"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#667085] uppercase tracking-wider mb-1.5">
+                <label htmlFor="auth-password" className="block text-xs font-semibold text-[#667085] uppercase tracking-wider mb-1.5">
                   Password {isRegister && <span className="text-[#667085] lowercase font-normal">(min 8 chars)</span>}
                 </label>
                 <input
+                  id="auth-password"
+                  name="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={isRegister ? 8 : undefined}
+                  autoComplete={isRegister ? "new-password" : "current-password"}
                   placeholder="••••••••"
                   className="w-full px-4 py-2 border border-[#E5EAF2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] transition-all text-[#172033] bg-gray-50 focus:bg-white"
                 />

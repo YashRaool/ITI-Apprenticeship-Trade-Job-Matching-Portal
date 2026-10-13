@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { useUserProfile } from "../../lib/useUserProfile";
@@ -14,16 +14,36 @@ import {
   User,
   LayoutDashboard,
   Globe,
+  AlertTriangle,
 } from "lucide-react";
 
 export const AppNavbar: React.FC = () => {
   const { user, logout } = useAuth();
   const { displayName, initials } = useUserProfile();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchParams] = useSearchParams();
   const [navKeyword, setNavKeyword] = useState(searchParams.get("keyword") || "");
   const [navLocation, setNavLocation] = useState(searchParams.get("location") || "");
+  const [deniedDismissed, setDeniedDismissed] = useState(false);
+
+  const isDenied = !deniedDismissed && (searchParams.get("denied") === "1" || !!(location.state as any)?.accessDenied);
+
+  const handleDismissDenied = () => {
+    setDeniedDismissed(true);
+    if (searchParams.get("denied") === "1") {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete("denied");
+      navigate(
+        {
+          pathname: location.pathname,
+          search: nextParams.toString() ? `?${nextParams.toString()}` : "",
+        },
+        { replace: true }
+      );
+    }
+  };
 
   useEffect(() => {
     setNavKeyword(searchParams.get("keyword") || "");
@@ -262,6 +282,32 @@ export const AppNavbar: React.FC = () => {
                 </div>
               )}
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isDenied && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="bg-amber-50 border-b border-amber-200 text-amber-900 px-4 py-2.5 text-xs sm:text-sm font-medium flex items-center justify-between"
+          >
+            <div className="flex items-center gap-2 max-w-4xl">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>
+                <strong>Access Denied:</strong> Your account role does not have permission to view that page. You have been redirected to your dashboard.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleDismissDenied}
+              className="p-1 hover:bg-amber-100 rounded text-amber-700 transition-colors ml-2 cursor-pointer"
+              aria-label="Dismiss access denied alert"
+            >
+              <X size={14} />
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

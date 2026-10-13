@@ -15,6 +15,7 @@ import employerRoutes from "./routes/employerRoutes";
 import jobRoutes from "./routes/jobRoutes";
 import messageRoutes from "./routes/messageRoutes";
 import interviewRoutes from "./routes/interviewRoutes";
+import contactRoutes from "./routes/contactRoutes";
 
 const app = express();
 
@@ -75,6 +76,7 @@ app.use("/employers", employerRoutes);
 app.use("/jobs", jobRoutes);
 app.use("/messages", messageRoutes);
 app.use("/interviews", interviewRoutes);
+app.use("/contact", contactRoutes);
 
 // ─── 404 ──────────────────────────────────────────────────────────────────────
 app.use((_req: Request, res: Response) => {

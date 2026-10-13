@@ -43,3 +43,4 @@ adapters/
 scripts/*
 !scripts/package-eb.js
 dist-eb/
+.qa-artifacts/

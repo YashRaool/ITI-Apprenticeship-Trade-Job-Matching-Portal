@@ -2,8 +2,9 @@ import { useRef, useState, useEffect } from "react";
 import LandingNavbar from "../components/LandingNavbar";
 import Hero3DBackground from "../components/Hero3DBackground";
 import { useNavigate, Link } from "react-router-dom";
-import { Wrench, Zap, Factory, Cog, CheckCircle, Search, FileText, Mail, Phone, MapPin, ExternalLink } from "lucide-react";
+import { Wrench, Zap, Factory, Cog, CheckCircle, Search, FileText, Mail, Phone, MapPin, ExternalLink, Loader2, AlertCircle } from "lucide-react";
 import { motion, useScroll, useTransform, useReducedMotion, type Variants } from "framer-motion";
+import { api } from "../lib/api";
 
 const OFFICE_LOCATION = "Yavatmal, Maharashtra, India";
 const GOOGLE_MAPS_URL = "https://maps.app.goo.gl/gdiQapoTckLoNYu88";
@@ -16,6 +17,58 @@ export default function LandingPage() {
   const [activeStep, setActiveStep] = useState(1);
 
   const [aboutStickyTop, setAboutStickyTop] = useState(0);
+
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    email: "",
+    role: "trainee",
+    message: "",
+  });
+  const [contactSubmitting, setContactSubmitting] = useState(false);
+  const [contactStatus, setContactStatus] = useState<"idle" | "success" | "error">("idle");
+  const [contactErrorMsg, setContactErrorMsg] = useState("");
+  const [contactValidation, setContactValidation] = useState<Record<string, string>>({});
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+    if (!contactForm.name.trim()) errors.name = "Full name is required";
+    if (!contactForm.email.trim()) {
+      errors.email = "Email address is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactForm.email.trim())) {
+      errors.email = "Please enter a valid email address";
+    }
+    if (!contactForm.message.trim()) errors.message = "Message cannot be empty";
+
+    if (Object.keys(errors).length > 0) {
+      setContactValidation(errors);
+      return;
+    }
+
+    setContactValidation({});
+    setContactSubmitting(true);
+    setContactStatus("idle");
+    setContactErrorMsg("");
+
+    try {
+      const res = await api.post("/contact", contactForm, { timeout: 10000 });
+      if (res.data?.success) {
+        setContactStatus("success");
+        setContactForm({ name: "", email: "", role: "trainee", message: "" });
+      } else {
+        throw new Error(res.data?.message || "Failed to submit message");
+      }
+    } catch (err: any) {
+      setContactStatus("error");
+      const msg =
+        err.response?.status === 404
+          ? "Online contact dispatch endpoint is not configured on the backend server. No message was delivered."
+          : err.response?.data?.message || err.message || "Failed to deliver message.";
+      setContactErrorMsg(msg);
+    } finally {
+      setContactSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     const updateSticky = () => {
@@ -734,31 +787,107 @@ export default function LandingPage() {
               variants={sceneChildVariants}
               className="bg-[#F8FBFF] border border-[#E5EAF2] rounded-3xl p-8 lg:p-10 shadow-sm hover:shadow-md transition-shadow"
             >
-              <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+              <form className="space-y-5" onSubmit={handleContactSubmit}>
+                {contactStatus === "success" && (
+                  <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 text-xs sm:text-sm flex items-start gap-2.5">
+                    <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold">Message delivered successfully!</p>
+                      <p className="text-emerald-700 mt-0.5">Thank you for reaching out. Our team will review your inquiry and follow up shortly.</p>
+                      <button
+                        type="button"
+                        onClick={() => setContactStatus("idle")}
+                        className="mt-2 text-xs font-semibold text-emerald-800 underline hover:no-underline cursor-pointer"
+                      >
+                        Send another message
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {contactStatus === "error" && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-800 text-xs sm:text-sm">
+                    <div className="flex items-start gap-2.5">
+                      <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="font-semibold text-red-900 mb-1">Message could not be submitted via web service</p>
+                        <p className="text-red-700 leading-relaxed mb-3">{contactErrorMsg}</p>
+                        <div className="flex flex-wrap gap-2">
+                          <a
+                            href={`mailto:yashhraool9@gmail.com?subject=${encodeURIComponent(
+                              `Inquiry from ${contactForm.name || "Portal User"} (${contactForm.role})`
+                            )}&body=${encodeURIComponent(
+                              `Name: ${contactForm.name}\nEmail: ${contactForm.email}\nRole: ${contactForm.role}\n\nMessage:\n${contactForm.message}`
+                            )}`}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                          >
+                            <Mail size={13} />
+                            <span>Send via Email Client (mailto)</span>
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => setContactStatus("idle")}
+                            className="px-3 py-1.5 bg-white border border-red-300 text-red-700 hover:bg-red-50 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                          >
+                            Dismiss
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div>
-                  <label htmlFor="name" className="block text-sm font-semibold text-[#172033] mb-2">Full Name</label>
+                  <label htmlFor="contact-name" className="block text-sm font-semibold text-[#172033] mb-1.5">
+                    Full Name <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
-                    id="name"
+                    id="contact-name"
+                    name="name"
+                    value={contactForm.name}
+                    onChange={(e) => setContactForm((prev) => ({ ...prev, name: e.target.value }))}
                     placeholder="John Doe"
-                    className="w-full px-4 py-3.5 rounded-xl border border-[#E5EAF2] bg-white focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#2563EB]/10 focus:border-[#2563EB] transition-all"
+                    disabled={contactSubmitting}
+                    className={`w-full px-4 py-3 rounded-xl border ${
+                      contactValidation.name ? "border-red-400 bg-red-50/30" : "border-[#E5EAF2] bg-white"
+                    } focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#2563EB]/10 focus:border-[#2563EB] transition-all text-sm text-[#172033]`}
                   />
+                  {contactValidation.name && <p className="text-xs text-red-600 mt-1">{contactValidation.name}</p>}
                 </div>
+
                 <div>
-                  <label htmlFor="email" className="block text-sm font-semibold text-[#172033] mb-2">Email Address</label>
+                  <label htmlFor="contact-email" className="block text-sm font-semibold text-[#172033] mb-1.5">
+                    Email Address <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="email"
-                    id="email"
+                    id="contact-email"
+                    name="email"
+                    value={contactForm.email}
+                    onChange={(e) => setContactForm((prev) => ({ ...prev, email: e.target.value }))}
                     placeholder="john@example.com"
-                    className="w-full px-4 py-3.5 rounded-xl border border-[#E5EAF2] bg-white focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#2563EB]/10 focus:border-[#2563EB] transition-all"
+                    autoComplete="email"
+                    disabled={contactSubmitting}
+                    className={`w-full px-4 py-3 rounded-xl border ${
+                      contactValidation.email ? "border-red-400 bg-red-50/30" : "border-[#E5EAF2] bg-white"
+                    } focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#2563EB]/10 focus:border-[#2563EB] transition-all text-sm text-[#172033]`}
                   />
+                  {contactValidation.email && <p className="text-xs text-red-600 mt-1">{contactValidation.email}</p>}
                 </div>
+
                 <div>
-                  <label htmlFor="role" className="block text-sm font-semibold text-[#172033] mb-2">I am a...</label>
+                  <label htmlFor="contact-role" className="block text-sm font-semibold text-[#172033] mb-1.5">
+                    I am a...
+                  </label>
                   <div className="relative">
                     <select
-                      id="role"
-                      className="w-full px-4 py-3.5 rounded-xl border border-[#E5EAF2] bg-white focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#2563EB]/10 focus:border-[#2563EB] transition-all appearance-none cursor-pointer"
+                      id="contact-role"
+                      name="role"
+                      value={contactForm.role}
+                      onChange={(e) => setContactForm((prev) => ({ ...prev, role: e.target.value }))}
+                      disabled={contactSubmitting}
+                      className="w-full px-4 py-3 rounded-xl border border-[#E5EAF2] bg-white focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#2563EB]/10 focus:border-[#2563EB] transition-all appearance-none cursor-pointer text-sm text-[#172033]"
                     >
                       <option value="trainee">Trainee</option>
                       <option value="employer">Employer</option>
@@ -769,23 +898,42 @@ export default function LandingPage() {
                     </div>
                   </div>
                 </div>
+
                 <div>
-                  <label htmlFor="message" className="block text-sm font-semibold text-[#172033] mb-2">Your Message</label>
+                  <label htmlFor="contact-message" className="block text-sm font-semibold text-[#172033] mb-1.5">
+                    Your Message <span className="text-red-500">*</span>
+                  </label>
                   <textarea
-                    id="message"
+                    id="contact-message"
+                    name="message"
                     rows={4}
+                    value={contactForm.message}
+                    onChange={(e) => setContactForm((prev) => ({ ...prev, message: e.target.value }))}
                     placeholder="How can we help you?"
-                    className="w-full px-4 py-3.5 rounded-xl border border-[#E5EAF2] bg-white focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#2563EB]/10 focus:border-[#2563EB] transition-all resize-none"
+                    disabled={contactSubmitting}
+                    className={`w-full px-4 py-3 rounded-xl border ${
+                      contactValidation.message ? "border-red-400 bg-red-50/30" : "border-[#E5EAF2] bg-white"
+                    } focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#2563EB]/10 focus:border-[#2563EB] transition-all resize-none text-sm text-[#172033]`}
                   ></textarea>
+                  {contactValidation.message && <p className="text-xs text-red-600 mt-1">{contactValidation.message}</p>}
                 </div>
+
                 <motion.button
                   type="submit"
-                  whileHover={shouldReduceMotion ? {} : { y: -2, scale: 1.01 }}
-                  whileTap={shouldReduceMotion ? {} : { scale: 0.98, y: 0 }}
+                  disabled={contactSubmitting}
+                  whileHover={shouldReduceMotion || contactSubmitting ? {} : { y: -2, scale: 1.01 }}
+                  whileTap={shouldReduceMotion || contactSubmitting ? {} : { scale: 0.98, y: 0 }}
                   transition={{ duration: 0.15, ease: "easeOut" }}
-                  className="w-full py-4 mt-2 bg-[#2563EB] text-white font-semibold rounded-xl hover:bg-[#1D4ED8] transition-colors shadow-sm hover:shadow-md text-lg cursor-pointer"
+                  className="w-full py-3.5 mt-2 bg-[#2563EB] text-white font-semibold rounded-xl hover:bg-[#1D4ED8] transition-colors shadow-sm hover:shadow-md text-base cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  Send Message
+                  {contactSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Submitting inquiry...</span>
+                    </>
+                  ) : (
+                    <span>Send Message</span>
+                  )}
                 </motion.button>
               </form>
             </motion.div>

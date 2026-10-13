@@ -38,16 +38,23 @@ function JobRow({
     >
       <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2.5 mb-1.5 flex-wrap">
-            <h3 className="font-bold text-gray-900 text-base truncate">{job.title}</h3>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
+          <div className="flex items-center gap-2.5 mb-1.5 min-w-0">
+            <h3
+              className="font-bold text-gray-900 text-base truncate min-w-0 flex-1"
+              title={job.title}
+            >
+              {job.title}
+            </h3>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border shrink-0 ${
               job.jobType === "full_time"
                 ? "bg-purple-50 text-purple-700 border-purple-200"
                 : "bg-emerald-50 text-emerald-700 border-emerald-200"
             }`}>
               {job.jobType === "full_time" ? "Full-Time" : "Apprenticeship"}
             </span>
-            <StatusBadge status={job.status} />
+            <div className="shrink-0">
+              <StatusBadge status={job.status} />
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
             <span className="flex items-center gap-1">

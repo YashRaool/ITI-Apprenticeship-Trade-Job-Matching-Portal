@@ -271,7 +271,10 @@ export const JobSearchPage: React.FC = () => {
                     </span>
                   </div>
 
-                  <h3 className="text-base font-bold text-gray-900 group-hover:text-blue-600 transition-colors tracking-tight line-clamp-1">
+                  <h3
+                    className="text-base font-bold text-gray-900 group-hover:text-blue-600 transition-colors tracking-tight truncate block"
+                    title={job.title}
+                  >
                     {job.title}
                   </h3>
 

@@ -126,7 +126,7 @@ export interface EmployerProfileDto extends EmployerProfileInput {
 
 // ─── Job Posting ──────────────────────────────────────────────────────────────
 export const JobPostingSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters").max(120, "Title too long"),
+  title: z.string().min(3, "Title must be at least 3 characters").max(300, "Title cannot exceed 300 characters"),
   tradeSkillId: z.string().min(1, "Trade skill is required"),
   location: z.string().min(2, "Location required").max(100, "Location too long"),
   description: z.string().min(10, "Description must be at least 10 characters").max(3000, "Description too long"),

@@ -305,10 +305,15 @@ export default function StudentDashboard() {
                           i !== applications.length - 1 ? 'border-b border-gray-100' : ''
                         }`}
                       >
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-gray-900 text-sm group-hover:text-blue-600 transition-colors">{app.job?.title}</h3>
-                            <ChevronRight size={13} className="text-gray-400 group-hover:translate-x-1 transition-transform" />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <h3
+                              className="font-bold text-gray-900 text-sm group-hover:text-blue-600 transition-colors truncate"
+                              title={app.job?.title}
+                            >
+                              {app.job?.title}
+                            </h3>
+                            <ChevronRight size={13} className="text-gray-400 group-hover:translate-x-1 transition-transform shrink-0" />
                           </div>
                           <p className="text-xs text-gray-600 mt-0.5">{app.job?.employer?.workshopName} • {app.job?.location}</p>
                           <p className="text-[11px] text-gray-500 mt-1">Applied on {new Date(app.createdAt).toLocaleDateString()}</p>
@@ -367,7 +372,12 @@ export default function StudentDashboard() {
                             </span>
                             <span className="text-xs font-medium text-green-600">Active</span>
                           </div>
-                          <h4 className="font-bold text-gray-900 text-sm group-hover:text-blue-600 transition-colors">{job.title}</h4>
+                          <h4
+                            className="font-bold text-gray-900 text-sm group-hover:text-blue-600 transition-colors truncate"
+                            title={job.title}
+                          >
+                            {job.title}
+                          </h4>
                           <p className="text-xs text-gray-600 mt-1">{job.employer?.workshopName}</p>
                           <p className="text-[11px] text-gray-500 flex items-center gap-1 mt-1"><MapPin size={11} />{job.location}</p>
                         </div>

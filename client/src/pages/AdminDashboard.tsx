@@ -974,8 +974,8 @@ function JobsPanel() {
                     j.flaggedFraudulent ? "bg-red-500/5 hover:bg-red-500/10" : "hover:bg-blue-500/5"
                   }`}
                 >
-                  <td className="px-4 py-3.5">
-                    <p className="font-bold text-ink-primary text-xs">{j.title}</p>
+                  <td className="px-4 py-3.5 max-w-[260px]">
+                    <p className="font-bold text-ink-primary text-xs truncate" title={j.title}>{j.title}</p>
                     <p className="text-[11px] text-ink-secondary mt-0.5">
                       {j.location} • <span className="text-blue-600 dark:text-blue-400 font-medium">{j.tradeSkill.name}</span>
                     </p>

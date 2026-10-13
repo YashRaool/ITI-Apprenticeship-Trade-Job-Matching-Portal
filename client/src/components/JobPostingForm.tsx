@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { employerApi, tradeSkillApi } from "../lib/api";
 import { JobPostingInput, JobPostingUpdateInput, JobPostingDto, TradeSkillDto } from "@iti-portal/shared";
 import { Loader2, Save, X, AlertCircle } from "lucide-react";
@@ -37,21 +37,64 @@ export default function JobPostingForm({ initialData, onSave, onCancel }: Props)
       .finally(() => setLoadingSkills(false));
   }, []);
 
+  const titleRef = useRef<HTMLTextAreaElement | null>(null);
+  const [titleTouched, setTitleTouched] = useState(false);
+
   const set = (k: string, v: string) => setFormData((prev) => ({ ...prev, [k]: v }));
+
+  const adjustTitleHeight = () => {
+    if (titleRef.current) {
+      titleRef.current.style.height = "auto";
+      titleRef.current.style.height = `${Math.max(72, titleRef.current.scrollHeight)}px`;
+    }
+  };
+
+  useEffect(() => {
+    adjustTitleHeight();
+  }, [formData.title]);
+
+  const getTitleError = (title: string, touched: boolean) => {
+    if (!touched) return null;
+    const trimmed = title.trim();
+    if (!trimmed) return "Job title is required.";
+    if (trimmed.length < 3) return "Title must be at least 3 characters.";
+    if (title.length > 300) return "Title cannot exceed 300 characters.";
+    return null;
+  };
+
+  const titleError = getTitleError(formData.title, titleTouched);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setTitleTouched(true);
+    const trimmedTitle = formData.title.trim();
+    if (!trimmedTitle) {
+      setError("Please provide a valid job title.");
+      return;
+    }
+    if (trimmedTitle.length < 3) {
+      setError("Title must be at least 3 characters.");
+      return;
+    }
+    if (formData.title.length > 300) {
+      setError("Title cannot exceed 300 characters.");
+      return;
+    }
+
     setSaving(true);
     setError(null);
     try {
       if (initialData?.id) {
-        const payload: JobPostingUpdateInput = { ...formData };
+        const payload: JobPostingUpdateInput = {
+          ...formData,
+          title: trimmedTitle,
+        };
         await employerApi.updateJob(initialData.id, payload);
       } else {
         const payload: JobPostingInput = {
-          title: formData.title,
+          title: trimmedTitle,
           tradeSkillId: formData.tradeSkillId,
-          location: formData.location,
+          location: formData.location.trim(),
           description: formData.description,
           jobType: formData.jobType,
         };
@@ -77,18 +120,53 @@ export default function JobPostingForm({ initialData, onSave, onCancel }: Props)
         <FormSection title="Opportunity Details" description="Define the opening title, trade domain, job type, and status.">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
             <div className="md:col-span-2">
-              <Label required className="text-gray-700">Opportunity / Job Title</Label>
-              <Input
-                type="text"
+              <div className="flex items-center justify-between mb-1.5">
+                <Label htmlFor="job-title-textarea" required className="text-gray-700 !mb-0">
+                  Opportunity / Job Title
+                </Label>
+                <span
+                  id="job-title-counter"
+                  className={`text-[11px] font-medium transition-colors ${
+                    formData.title.length > 300
+                      ? "text-red-600 font-bold"
+                      : formData.title.length >= 280
+                        ? "text-amber-600 font-semibold"
+                        : "text-gray-500"
+                  }`}
+                  aria-live="polite"
+                >
+                  {formData.title.length}/300 characters
+                </span>
+              </div>
+              <textarea
+                ref={titleRef}
+                id="job-title-textarea"
+                name="title"
                 required
-                minLength={3}
-                maxLength={120}
+                rows={2}
+                maxLength={300}
                 value={formData.title}
-                onChange={(e) => set("title", e.target.value)}
-                placeholder="e.g. Electrician Apprentice - Motor Rewinding"
+                onChange={(e) => {
+                  set("title", e.target.value);
+                  adjustTitleHeight();
+                }}
+                onBlur={() => setTitleTouched(true)}
+                placeholder="e.g. Electrician Apprentice - Motor Rewinding & Industrial Panel Wiring"
                 disabled={saving}
-                className="bg-white border-gray-300 text-gray-900"
+                aria-invalid={!!titleError}
+                aria-describedby={`job-title-counter ${titleError ? "job-title-error" : ""}`}
+                className={`w-full rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 bg-white border transition-all duration-150 outline-none leading-relaxed resize-y min-h-[72px] overflow-x-hidden break-words whitespace-pre-wrap disabled:opacity-50 disabled:cursor-not-allowed ${
+                  titleError
+                    ? "border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                    : "border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                }`}
               />
+              {titleError && (
+                <p id="job-title-error" className="text-xs text-red-600 mt-1 flex items-center gap-1 font-medium">
+                  <AlertCircle size={13} className="shrink-0" />
+                  {titleError}
+                </p>
+              )}
             </div>
 
             <div className="md:col-span-2">

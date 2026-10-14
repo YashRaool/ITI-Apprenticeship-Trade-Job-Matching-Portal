@@ -7,8 +7,8 @@ import { motion, useScroll, useTransform, useReducedMotion, type Variants } from
 import { api } from "../lib/api";
 
 const OFFICE_LOCATION = "Yavatmal, Maharashtra, India";
-const GOOGLE_MAPS_URL = "https://maps.app.goo.gl/gdiQapoTckLoNYu88";
-const GOOGLE_MAPS_EMBED_URL = "https://maps.google.com/maps?q=20.4082308,78.1355702+(Yavatmal)&hl=en&z=14&output=embed";
+const GOOGLE_MAPS_URL = "https://www.google.com/maps/search/?api=1&query=20.4082308%2C78.1355702";
+const GOOGLE_MAPS_EMBED_URL = "https://www.google.com/maps/embed?origin=mfe&pb=!1m3!2m1!1s20.4082308,78.1355702!6i14!3m1!1sen!5m1!1sen";
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -695,6 +695,7 @@ export default function LandingPage() {
 
       {/* ── Scene 5: Contact Us Layered Scene ────────────────────── */}
       <div id="contact" className="relative -top-20 pointer-events-none" />
+      <div id="map" className="relative -top-20 pointer-events-none" />
       <section 
         className="relative z-40 bg-white rounded-t-[32px] sm:rounded-t-[48px] shadow-[0_-30px_70px_rgba(15,23,42,0.22)] border-t border-[#E5EAF2] min-h-[90vh] lg:min-h-screen flex items-center scroll-mt-20 py-16 sm:py-20 lg:py-24 overflow-hidden -mt-6 lg:mt-0"
       >

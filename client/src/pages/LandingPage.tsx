@@ -7,8 +7,8 @@ import { motion, useScroll, useTransform, useReducedMotion, type Variants } from
 import { api } from "../lib/api";
 
 const OFFICE_LOCATION = "Yavatmal, Maharashtra, India";
-const GOOGLE_MAPS_URL = "https://www.google.com/maps/search/?api=1&query=20.4082308%2C78.1355702";
-const GOOGLE_MAPS_EMBED_URL = "https://www.google.com/maps/embed?origin=mfe&pb=!1m3!2m1!1s20.4082308,78.1355702!6i14!3m1!1sen!5m1!1sen";
+const GOOGLE_MAPS_URL = "https://www.google.com/maps/search/?api=1&query=Yavatmal%2C%20Maharashtra%2C%20India";
+const GOOGLE_MAPS_EMBED_URL = "https://www.google.com/maps/embed?origin=mfe&pb=!1m3!2m1!1s20.393235,78.132011!6i14!3m1!1sen!5m1!1sen";
 
 export default function LandingPage() {
   const navigate = useNavigate();

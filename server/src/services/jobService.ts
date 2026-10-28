@@ -9,8 +9,8 @@ export async function getActiveJobs(params: {
   limit?: number;
 }) {
   const limit = params.limit && params.limit > 0 ? params.limit : 10;
-  const page = params.page && params.page > 0 ? params.page : 1;
-  const skip = (page - 1) * limit;
+  const requestedPage = params.page && params.page > 0 ? params.page : 1;
+  const skip = (requestedPage - 1) * limit;
 
   const { jobs, total } = await jobRepository.findActiveJobs({
     tradeSkillId: params.tradeSkillId,
@@ -21,13 +21,16 @@ export async function getActiveJobs(params: {
     take: limit,
   });
 
+  const totalPages = Math.ceil(total / limit) || 1;
+  const page = total > 0 ? Math.min(requestedPage, totalPages) : 1;
+
   return {
     data: jobs,
     meta: {
       page,
       limit,
       total,
-      totalPages: Math.ceil(total / limit),
+      totalPages,
     },
   };
 }

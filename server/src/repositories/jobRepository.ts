@@ -14,32 +14,47 @@ export async function findActiveJobs(params: {
     employer: { verified: true }, // only show jobs from verified employers
   };
 
-  if (params.tradeSkillId) {
-    where.tradeSkillId = params.tradeSkillId;
+  if (params.tradeSkillId && params.tradeSkillId.trim()) {
+    const skill = params.tradeSkillId.trim();
+    where.tradeSkill = {
+      OR: [
+        { id: skill },
+        { name: { equals: skill, mode: "insensitive" } },
+      ],
+    };
   }
-  if (params.location) {
-    where.location = { contains: params.location, mode: "insensitive" };
+  if (params.location && params.location.trim()) {
+    where.location = { contains: params.location.trim(), mode: "insensitive" };
   }
-  if (params.search) {
-    where.title = { contains: params.search, mode: "insensitive" };
+  if (params.search && params.search.trim()) {
+    const term = params.search.trim();
+    where.OR = [
+      { title: { contains: term, mode: "insensitive" } },
+      { employer: { workshopName: { contains: term, mode: "insensitive" } } },
+    ];
   }
   if (params.jobType && (params.jobType === "apprenticeship" || params.jobType === "full_time")) {
     where.jobType = params.jobType;
   }
 
-  const [jobs, total] = await Promise.all([
-    prisma.jobPosting.findMany({
-      where,
-      include: {
-        tradeSkill: true,
-        employer: true,
-      },
-      orderBy: { createdAt: "desc" },
-      skip: params.skip,
-      take: params.take,
-    }),
-    prisma.jobPosting.count({ where }),
-  ]);
+  const total = await prisma.jobPosting.count({ where });
+  let skip = params.skip || 0;
+  if (total > 0 && skip >= total) {
+    const take = params.take || 10;
+    const lastPage = Math.ceil(total / take) || 1;
+    skip = (lastPage - 1) * take;
+  }
+
+  const jobs = await prisma.jobPosting.findMany({
+    where,
+    include: {
+      tradeSkill: true,
+      employer: true,
+    },
+    orderBy: { createdAt: "desc" },
+    skip,
+    take: params.take,
+  });
 
   return { jobs, total };
 }

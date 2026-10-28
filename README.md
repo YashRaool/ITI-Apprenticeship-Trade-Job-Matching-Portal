@@ -250,6 +250,19 @@ The health endpoint should return a successful status response when the backend 
 
 ---
 
+## 🔍 Testing Job Search Filters
+
+Perform these browser-based verification checks against the `/jobs` route using seeded or real active job data:
+
+- [ ] **Location Searches:** Verify searching by cities (such as Pune, Chennai, and Delhi NCR) returns matching openings.
+- [ ] **Trade-Skill Filtering:** Select trade specializations from the dropdown to confirm trade-specific listings.
+- [ ] **Job Type Filtering:** Filter by Apprenticeship versus Full-Time Trade Job to confirm opportunities match the selected type.
+- [ ] **Combined Filters:** Apply multiple filters simultaneously (e.g., location, trade skill, and job type) and confirm results satisfy all selected criteria.
+- [ ] **Pagination:** Navigate through results using the pagination controls when results span across pages.
+- [ ] **Out-of-Range Recovery:** Navigate directly to an out-of-range URL such as `/jobs?page=999` and confirm the application safely recovers to the final valid page.
+
+---
+
 ## ☁️ Deployment Status
 
 🚧 **Deployment preparation is in progress.**

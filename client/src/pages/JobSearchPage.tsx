@@ -15,21 +15,57 @@ export const JobSearchPage: React.FC = () => {
   const [error, setError] = useState('');
 
   const [searchParams] = useSearchParams();
-  const [searchKeyword, setSearchKeyword] = useState(searchParams.get('keyword') || '');
+  const [searchKeyword, setSearchKeyword] = useState(searchParams.get('keyword') || searchParams.get('search') || '');
   const [searchLocation, setSearchLocation] = useState(searchParams.get('location') || '');
   const [searchJobType, setSearchJobType] = useState(searchParams.get('jobType') || '');
-  const [searchStream, setSearchStream] = useState('');
+  const [searchStream, setSearchStream] = useState(searchParams.get('tradeSkillId') || searchParams.get('stream') || '');
 
-  useEffect(() => {
-    setSearchKeyword(searchParams.get('keyword') || '');
-    setSearchLocation(searchParams.get('location') || '');
-    setSearchJobType(searchParams.get('jobType') || '');
-  }, [searchParams]);
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1', 10) || 1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalJobs, setTotalJobs] = useState(0);
 
   useEffect(() => {
     fetchTradeSkills();
-    fetchJobs();
   }, []);
+
+  useEffect(() => {
+    const kw = searchParams.get('keyword') || searchParams.get('search') || '';
+    const loc = searchParams.get('location') || '';
+    const jt = searchParams.get('jobType') || '';
+    const st = searchParams.get('tradeSkillId') || searchParams.get('stream') || '';
+    const pg = parseInt(searchParams.get('page') || '1', 10) || 1;
+
+    setSearchKeyword(kw);
+    setSearchLocation(loc);
+    setSearchJobType(jt);
+    setSearchStream(st);
+    setCurrentPage(pg);
+
+    fetchJobs(kw, loc, jt, st, pg);
+  }, [searchParams]);
+
+  const buildSearchParams = (overrides?: {
+    keyword?: string;
+    location?: string;
+    jobType?: string;
+    stream?: string;
+    page?: number;
+  }) => {
+    const params = new URLSearchParams();
+    const kw = (overrides?.keyword !== undefined ? overrides.keyword : searchKeyword).trim();
+    const loc = (overrides?.location !== undefined ? overrides.location : searchLocation).trim();
+    const jt = (overrides?.jobType !== undefined ? overrides.jobType : searchJobType).trim();
+    const st = (overrides?.stream !== undefined ? overrides.stream : searchStream).trim();
+    const pg = overrides?.page !== undefined ? overrides.page : undefined;
+
+    if (kw) params.set('keyword', kw);
+    if (loc) params.set('location', loc);
+    if (jt) params.set('jobType', jt);
+    if (st) params.set('tradeSkillId', st);
+    if (pg && pg > 1) params.set('page', String(pg));
+
+    return params;
+  };
 
   const fetchTradeSkills = async () => {
     try {
@@ -48,13 +84,54 @@ export const JobSearchPage: React.FC = () => {
     }
   };
 
-  const fetchJobs = async () => {
+  const fetchJobs = async (
+    kw: string,
+    loc: string,
+    jt: string,
+    st: string,
+    page: number
+  ) => {
     setLoading(true);
+    setError('');
     try {
-      const res = await api.get('/jobs');
-      if (res.data.success) setJobs(res.data.data);
+      const params: Record<string, any> = { page, limit: 12 };
+      if (kw.trim()) params.search = kw.trim();
+      if (loc.trim()) params.location = loc.trim();
+      if (jt.trim()) params.jobType = jt.trim();
+      if (st.trim()) params.tradeSkillId = st.trim();
+
+      const res = await api.get('/jobs', { params });
+      if (res.data.success) {
+        setJobs(res.data.data || []);
+        if (res.data.meta) {
+          const metaTotalPages = res.data.meta.totalPages || 1;
+          const metaTotal = res.data.meta.total ?? (res.data.data?.length || 0);
+          const metaPage = res.data.meta.page || page;
+
+          // Recover out-of-range page back to the last valid page
+          if (page > metaTotalPages && metaTotal > 0) {
+            const lastValidPage = metaTotalPages;
+            const updated = buildSearchParams({
+              keyword: kw,
+              location: loc,
+              jobType: jt,
+              stream: st,
+              page: lastValidPage,
+            });
+            navigate({ search: updated.toString() }, { replace: true });
+            return;
+          }
+
+          setTotalPages(metaTotalPages);
+          setTotalJobs(metaTotal);
+          setCurrentPage(metaPage);
+        }
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load apprenticeship openings');
+      setJobs([]);
+      setTotalPages(1);
+      setTotalJobs(0);
     } finally {
       setLoading(false);
     }
@@ -62,12 +139,7 @@ export const JobSearchPage: React.FC = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    const params = new URLSearchParams();
-    const kw = searchKeyword.trim();
-    const loc = searchLocation.trim();
-    if (kw) params.set('keyword', kw);
-    if (loc) params.set('location', loc);
-    if (searchJobType) params.set('jobType', searchJobType);
+    const params = buildSearchParams({ page: 1 });
     navigate({ search: params.toString() }, { replace: true });
   };
 
@@ -81,28 +153,25 @@ export const JobSearchPage: React.FC = () => {
 
   const handleJobTypeSelect = (type: string) => {
     setSearchJobType(type);
-    const params = new URLSearchParams(searchParams);
-    if (type) {
-      params.set('jobType', type);
-    } else {
-      params.delete('jobType');
-    }
+    const params = buildSearchParams({ jobType: type, page: 1 });
     navigate({ search: params.toString() }, { replace: true });
   };
 
+  const handleStreamChange = (val: string) => {
+    setSearchStream(val);
+    const params = buildSearchParams({ stream: val, page: 1 });
+    navigate({ search: params.toString() }, { replace: true });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    const params = buildSearchParams({ page: newPage });
+    navigate({ search: params.toString() });
+    if (typeof window !== 'undefined' && window.scrollTo) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const hasFilter = Boolean(searchKeyword || searchLocation || searchStream || searchJobType);
-
-  const filteredApprenticeships = jobs.filter(job => {
-    const titleMatch = (job.title || '').toLowerCase().includes(searchKeyword.toLowerCase());
-    const companyMatch = (((job as any).employer?.workshopName) || '').toLowerCase().includes(searchKeyword.toLowerCase());
-    const keywordMatch = searchKeyword === '' || titleMatch || companyMatch;
-    
-    const locationMatch = searchLocation === '' || (job.location || '').toLowerCase().includes(searchLocation.toLowerCase());
-    const streamMatch = searchStream === '' || String(job.tradeSkillId) === String(searchStream);
-    const jobTypeMatch = searchJobType === '' || (job.jobType || 'apprenticeship') === searchJobType;
-
-    return keywordMatch && locationMatch && streamMatch && jobTypeMatch;
-  });
 
   return (
     <div className="min-h-screen bg-slate-50 text-gray-900 pb-20">
@@ -167,7 +236,7 @@ export const JobSearchPage: React.FC = () => {
               <div className="relative">
                 <select
                   value={searchStream}
-                  onChange={(e) => setSearchStream(e.target.value)}
+                  onChange={(e) => handleStreamChange(e.target.value)}
                   className="w-full bg-white border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all pl-3 py-2.5 appearance-none pr-8 text-xs sm:text-sm cursor-pointer text-gray-900"
                 >
                   <option value="">All Trade Specializations</option>
@@ -222,7 +291,7 @@ export const JobSearchPage: React.FC = () => {
         {/* Results */}
         <div className="flex items-center justify-between mb-4">
           <p className="text-xs sm:text-sm font-semibold text-gray-600">
-            Showing <span className="font-bold text-blue-600">{filteredApprenticeships.length}</span> active opening{filteredApprenticeships.length === 1 ? '' : 's'}
+            Showing <span className="font-bold text-blue-600">{jobs.length}</span>{totalJobs > jobs.length ? <> of <span className="font-bold text-blue-600">{totalJobs}</span></> : ''} active opening{totalJobs === 1 ? '' : 's'}
           </p>
         </div>
 
@@ -234,7 +303,7 @@ export const JobSearchPage: React.FC = () => {
 
         {loading ? (
           <LoadingState message="Fetching available trade apprenticeships..." />
-        ) : filteredApprenticeships.length === 0 ? (
+        ) : jobs.length === 0 ? (
           <EmptyState
             message="No matching opportunities found"
             description="Try broadening your search keywords, clearing location filters, or switching job types."
@@ -244,59 +313,86 @@ export const JobSearchPage: React.FC = () => {
             ) : undefined}
           />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredApprenticeships.map((job, i) => (
-              <motion.div
-                key={job.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: Math.min(i * 0.05, 0.25), duration: 0.2 }}
-                whileHover={{ y: -2 }}
-                onClick={() => navigate(`/jobs/${job.id}`)}
-                className="bg-white border border-gray-200 rounded-xl p-5 sm:p-6 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <span
-                      className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700"
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {jobs.map((job, i) => (
+                <motion.div
+                  key={job.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: Math.min(i * 0.05, 0.25), duration: 0.2 }}
+                  whileHover={{ y: -2 }}
+                  onClick={() => navigate(`/jobs/${job.id}`)}
+                  className="bg-white border border-gray-200 rounded-xl p-5 sm:p-6 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-2 mb-3">
+                      <span
+                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700"
+                      >
+                        <Briefcase size={11} />{job.tradeSkill?.name || 'Trade Requirement'}
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
+                        job.jobType === 'full_time'
+                          ? 'bg-purple-50 text-purple-700 border-purple-200'
+                          : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      }`}>
+                        {job.jobType === 'full_time' ? 'Full-Time' : 'Apprenticeship'}
+                      </span>
+                    </div>
+
+                    <h3
+                      className="text-base font-bold text-gray-900 group-hover:text-blue-600 transition-colors tracking-tight truncate block"
+                      title={job.title}
                     >
-                      <Briefcase size={11} />{job.tradeSkill?.name || 'Trade Requirement'}
-                    </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
-                      job.jobType === 'full_time'
-                        ? 'bg-purple-50 text-purple-700 border-purple-200'
-                        : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    }`}>
-                      {job.jobType === 'full_time' ? 'Full-Time' : 'Apprenticeship'}
-                    </span>
+                      {job.title}
+                    </h3>
+
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1.5">
+                      <Building2 size={12} className="text-gray-400 shrink-0" />
+                      <span className="font-medium truncate">{(job as any).employer?.workshopName || 'Certified Workshop'}</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1">
+                      <MapPin size={12} className="shrink-0" /><span>{job.location}</span>
+                    </div>
+
+                    <p className="text-xs text-gray-600 mt-3 line-clamp-3 leading-relaxed">{job.description}</p>
                   </div>
 
-                  <h3
-                    className="text-base font-bold text-gray-900 group-hover:text-blue-600 transition-colors tracking-tight truncate block"
-                    title={job.title}
-                  >
-                    {job.title}
-                  </h3>
-
-                  <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1.5">
-                    <Building2 size={12} className="text-gray-400 shrink-0" />
-                    <span className="font-medium truncate">{(job as any).employer?.workshopName || 'Certified Workshop'}</span>
+                  <div className="mt-5 pt-3.5 border-t border-gray-100 flex items-center justify-between text-xs font-semibold text-blue-600 group-hover:text-blue-800">
+                    <span>View Details &amp; Apply</span>
+                    <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                   </div>
+                </motion.div>
+              ))}
+            </div>
 
-                  <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1">
-                    <MapPin size={12} className="shrink-0" /><span>{job.location}</span>
-                  </div>
-
-                  <p className="text-xs text-gray-600 mt-3 line-clamp-3 leading-relaxed">{job.description}</p>
-                </div>
-
-                <div className="mt-5 pt-3.5 border-t border-gray-100 flex items-center justify-between text-xs font-semibold text-blue-600 group-hover:text-blue-800">
-                  <span>View Details &amp; Apply</span>
-                  <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                </div>
-              </motion.div>
-            ))}
-          </div>
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-2 mt-8">
+                <button
+                  type="button"
+                  disabled={currentPage <= 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  className="px-3.5 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 text-xs sm:text-sm font-semibold hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <span className="text-xs sm:text-sm font-semibold text-gray-600 px-3.5 py-2 bg-white border border-gray-200 rounded-lg">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  className="px-3.5 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 text-xs sm:text-sm font-semibold hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>

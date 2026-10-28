@@ -5,13 +5,13 @@ const router = Router();
 
 router.get("/", async (req, res, next) => {
   try {
-    const { tradeSkillId, location, search, jobType, page, limit } = req.query;
+    const { tradeSkillId, stream, location, search, keyword, jobType, page, limit } = req.query;
     
     const result = await jobService.getActiveJobs({
-      tradeSkillId: tradeSkillId as string,
-      location: location as string,
-      search: search as string,
-      jobType: jobType as string,
+      tradeSkillId: ((tradeSkillId || stream) as string)?.trim() || undefined,
+      location: (location as string)?.trim() || undefined,
+      search: ((search || keyword) as string)?.trim() || undefined,
+      jobType: (jobType as string)?.trim() || undefined,
       page: page ? parseInt(page as string, 10) : undefined,
       limit: limit ? parseInt(limit as string, 10) : undefined,
     });
